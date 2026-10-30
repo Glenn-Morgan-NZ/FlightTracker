@@ -1,3 +1,7 @@
+# Flight Tracking Update
+
+The recent breakage affecting overhead flight data has now been resolved. If your flight tracker is not working, see [Fixing recent flight tracking breakage](#fixing-recent-flight-tracking-breakage) at the bottom of this README.
+
 # RBG Matrix Flight Tracker
 
 - 📖 [Blog post about this project](https://blog.colinwaddell.com/flight-tracker/)
@@ -46,12 +50,12 @@ This will take a while on a fresh device as it picks up all its updates.
 
 1. Assemble the RGB matrix, Pi, and Bonnet as described in [this Adafruit guide](https://learn.adafruit.com/adafruit-rgb-matrix-bonnet-for-raspberry-pi/overview).
 2. It is recommended that the [solder bridge is added to the HAT](https://learn.adafruit.com/assets/57727) in order to use the Pi's soundcard to drive the device's PWM.
-3. Please [read the official installation instructions](https://learn.adafruit.com/adafruit-rgb-matrix-bonnet-for-raspberry-pi/driving-matrices) for further details before proceeding **but don't run any commands or install anything yet**.
+3. Please [read the official installation instructions](https://learn.adafruit.com/adafruit-rgb-matrix-bonnet-for-raspberry-pi/install-using-script) for further details before proceeding **but don't run any commands or install anything yet**.
 4. Use the following commands to install the `rgb-matrix` library. Please note the paths used in these instructions are used later in this guide and must be adhered to for everything to make sense.
 
 ```
 cd /home/pi
-curl https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/main/rgb-matrix.sh > /tmp/rgb-matrix.sh
+curl https://raw.githubusercontent.com/adafruit/Raspberry-Pi-Installer-Scripts/refs/heads/main/converted_shell_scripts/rgb-matrix.sh > /tmp/rgb-matrix.sh
 sudo bash /tmp/rgb-matrix.sh
 ```
 
@@ -114,6 +118,7 @@ WEATHER_LOCATION = "Glasgow"
 OPENWEATHER_API_KEY = "" # Get an API key from https://openweathermap.org/price
 TEMPERATURE_UNITS = "metric"
 MIN_ALTITUDE = 100
+MAX_ALTITUDE = 30000
 BRIGHTNESS = 50
 GPIO_SLOWDOWN = 2
 JOURNEY_CODE_SELECTED = "GLA"
@@ -135,11 +140,15 @@ In reality you'll want to customise `config.py` for your own purposes.
 | `OPENWEATHER_API_KEY`    | If provided, enables OpenWeather API. [Get a free key here](https://openweathermap.org/price). *(Optional)* |
 | `TEMPERATURE_UNITS`      | One of `"metric"` or `"imperial"`. Defaults to `"metric"`. |
 | `MIN_ALTITUDE`           | Removes planes below this altitude (in feet). Useful for filtering out planes on the tarmac. |
+| `MAX_ALTITUDE`           | Removes planes above this altitude (in feet). Useful for reducing plane noise if location close to a flight path  |
 | `BRIGHTNESS`             | Range 0–100. Adjusts brightness of the display. |
 | `GPIO_SLOWDOWN`          | Range 0–4. Higher values help reduce flickering on faster hardware (e.g., `2` for Pi Zero 2 W). |
 | `JOURNEY_CODE_SELECTED`  | Three-letter airport code of a local airport to display in **bold**. *(Optional)* |
 | `JOURNEY_BLANK_FILLER`   | Three-letter text used in place of an unknown airport. Defaults to `" ? "`. |
 | `HAT_PWM_ENABLED`        | Enables PWM via Pi’s soundcard. Requires [solder bridge modification](https://learn.adafruit.com/assets/57727). Defaults to `True`. |
+| `TAR1090_URL`            | URL of your local tar1090 `aircraft.json` endpoint. When set, flight data is pulled from your own ADS-B receiver instead of FlightRadar24. *(Optional — see below)* |
+
+
 
 
 ### Configuring permissions to avoid running as root
@@ -203,6 +212,81 @@ RAINFALL_ENABLED = True
 ```
 
 [![Example Weather Chart](https://raw.githubusercontent.com/ColinWaddell/FlightTracker/refs/heads/master/assets/weather.jpg)](https://raw.githubusercontent.com/ColinWaddell/FlightTracker/refs/heads/master/assets/weather.jpg)
+
+### Using a local ADS-B receiver (tar1090)
+
+**EXPERIMENTAL 🧪**
+
+By default the tracker pulls flight data from FlightRadar24. If you run your own ADS-B receiver with [tar1090](https://github.com/wiedehopf/tar1090) or a compatible [PiAware](https://www.flightaware.com/adsb/piaware/) / [dump1090-fa](https://github.com/flightaware/dump1090) setup, you can use that as your data source instead — no FlightRadar24 account or API access required.
+
+#### What you need
+
+- A Raspberry Pi (or other device) running dump1090-fa, readsb, or similar, with tar1090 installed
+- The device must be reachable on your local network from the Flight Tracker Pi
+- tar1090-db enrichment should be active (this is the default in most installations) — it provides the aircraft type descriptions used by this software
+
+#### Finding your aircraft.json URL
+
+The URL varies depending on your setup. Try each of the following in your browser, replacing `your-receiver` with your device’s hostname or IP address, until you get a response containing a list of aircraft:
+
+```
+http://your-receiver/tar1090/data/aircraft.json
+http://your-receiver:8080/data/aircraft.json
+http://your-receiver/dump1090-fa/data/aircraft.json
+http://your-receiver/skyaware/data/aircraft.json
+```
+
+The response should be a JSON object with an `"aircraft"` array. If you see that, you have the right URL.
+
+#### Enabling tar1090 as your data source
+
+Add a single line to your `config.py`, using the URL you found above:
+
+```python
+TAR1090_URL = "http://your-receiver:8080/data/aircraft.json"
+```
+
+That’s all. The tracker will automatically use your local receiver when `TAR1090_URL` is present, and fall back to FlightRadar24 if it is not set. Existing `config.py` files require no changes.
+
+#### Differences from FlightRadar24 mode
+
+- Aircraft type (e.g. "Airbus A-320") is sourced directly from the tar1090 aircraft database — no external lookup needed
+- Origin and destination airport codes are looked up via [adsbdb.com](https://api.adsbdb.com) by callsign, with an 8-hour local cache
+- All position and altitude data comes from your receiver in real time
+- No rate limiting or API key required
+
+## Fixing recent flight tracking breakage
+
+If flight tracking stopped working during the recent `FlightRadarAPI` breakage, try either of the following fixes. The `Fix #1` is to update everything, but if you don't want to do that attempt `Fix #2` instead which only targets the broken package:
+
+### Fix 1: Pull the latest changes and reinstall requirements
+
+This is the recommended fix because it updates both the code and the pinned dependencies from this repo.
+
+```
+cd /home/pi/FlightTracker
+git pull
+source env/bin/activate
+pip install -r requirements.txt
+```
+
+### Fix 2: Upgrade `FlightRadarAPI` in the existing virtual environment
+
+If your checkout is already up to date and you only need the package fix, this is the quickest option.
+
+```
+cd /home/pi/FlightTracker
+source env/bin/activate
+pip install FlightRadarAPI -U
+```
+
+### Last step
+
+After applying any of the fixes above, restart the service if you run Flight Tracker on boot:
+
+```
+sudo systemctl restart FlightTracker.service
+```
 
 # License Update:
 As of April 2025, Flight Tracker is released under the GNU General Public License v3.0
