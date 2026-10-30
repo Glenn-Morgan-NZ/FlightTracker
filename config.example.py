@@ -9,10 +9,11 @@ LOCATION_HOME = [
     -0.4543, # Longitude (deg)
     0.025 # Altitude (km)
 ]
-TEMPERATURE_LOCATION = "Your Town"
+WEATHER_LOCATION = "Your Town"
 OPENWEATHER_API_KEY = "your_openweather_api_key_here" # Get an API key from https://openweathermap.org/price
 TEMPERATURE_UNITS = "metric"
 MIN_ALTITUDE = 100
+MAX_ALTITUDE = 10000
 BRIGHTNESS = 50
 GPIO_SLOWDOWN = 2
 JOURNEY_CODE_SELECTED = "LHR"
