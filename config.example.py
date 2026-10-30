@@ -19,3 +19,4 @@ GPIO_SLOWDOWN = 2
 JOURNEY_CODE_SELECTED = "LHR"
 JOURNEY_BLANK_FILLER = " ? "
 HAT_PWM_ENABLED = True
+LOGO_INTERVAL = 60 # Seconds between showing the logo (needs assets/logo.pgm)

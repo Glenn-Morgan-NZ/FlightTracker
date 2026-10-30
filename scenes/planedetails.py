@@ -15,12 +15,17 @@ class PlaneDetailsScene(object):
         super().__init__()
         self.plane_position = screen.WIDTH
         self._data_all_looped = False
+        self._data_loop_count = 0
 
     @Animator.KeyFrame.add(1)
     def plane_details(self, count):
 
         # Guard against no data
         if len(self._data) == 0:
+            return
+
+        # Hold scrolling while the logo is on screen
+        if self._logo_showing:
             return
 
         plane = f'{self._data[self._data_index]["plane"]}'
@@ -52,6 +57,10 @@ class PlaneDetailsScene(object):
                 self._data_index = (self._data_index + 1) % len(self._data)
                 self._data_all_looped = (not self._data_index) or self._data_all_looped
                 self.reset_scene()
+
+            # Count each time every flight has been shown
+            if not self._data_index:
+                self._data_loop_count += 1
 
     @Animator.KeyFrame.add(0)
     def reset_scrolling(self):

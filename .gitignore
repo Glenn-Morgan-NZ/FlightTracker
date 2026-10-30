@@ -3,6 +3,7 @@
 _crap/
 .vscode/
 config.py
+assets/logo.pgm
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

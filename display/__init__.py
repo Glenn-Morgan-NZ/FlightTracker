@@ -18,6 +18,7 @@ from scenes.clock import ClockScene
 from scenes.planedetails import PlaneDetailsScene
 from scenes.day import DayScene
 from scenes.date import DateScene
+from scenes.logo import LogoScene
 
 from rgbmatrix import graphics
 from rgbmatrix import RGBMatrix, RGBMatrixOptions
@@ -58,6 +59,7 @@ class Display(
     ClockScene,
     DayScene,
     DateScene,
+    LogoScene,
     Animator,
 ):
     def __init__(self):
@@ -129,7 +131,11 @@ class Display(
 
     @Animator.KeyFrame.add(1)
     def sync(self, count):
-        _ = self.matrix.SwapOnVSync(self.canvas)
+        # The logo has its own canvas so the other
+        # scenes can keep drawing underneath it
+        _ = self.matrix.SwapOnVSync(
+            self._logo_canvas if self._logo_showing else self.canvas
+        )
 
     @Animator.KeyFrame.add(frames.PER_SECOND * 30)
     def grab_new_data(self, count):
