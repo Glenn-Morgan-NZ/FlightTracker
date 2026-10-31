@@ -13,6 +13,21 @@ For much more detailed documentation, visit [flight-tracker.dev](https://flight-
 
 ---
 
+## About this fork
+
+This is SkiesFifty's fork of [ColinWaddell/FlightTracker](https://github.com/ColinWaddell/FlightTracker), running on a Raspberry Pi Zero W with an Adafruit RGB Matrix Bonnet.
+
+Current version: **v2.12.4-s50.1** (upstream v2.12.4 plus the changes below).
+
+ - **Smoother pushed images on slow Pis.** The Image Upload API screen now redraws only the pixels that change, instead of all 2048 every frame. On a Pi Zero this takes a frame from over a second to about 26ms.
+ - **SkiesFifty logo.** A small service in [`skiesfifty/`](skiesfifty/) scrolls the logo across the display every 60 seconds using the Image Upload API.
+
+Fork versions are tagged `v<upstream version>-s50.<n>`. `version.py` keeps the upstream number so update checks still compare correctly.
+
+**Don't use the web updater on this fork.** It checks out upstream release tags, which would remove the changes above. To update, merge upstream `main` into this fork, then `git pull` on the Pi and restart the service.
+
+---
+
 ## Support Me
 
 I've been working on this project for 5 years now, nearly every day, helping users and adding new features. If you'd like to show your support visit [ko-fi.com/flighttracker](https://ko-fi.com/flighttracker)

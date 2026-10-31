@@ -1,0 +1,16 @@
+[Unit]
+Description=SkiesFifty logo on the flight tracker
+After=FlightTracker.service
+Wants=FlightTracker.service
+
+[Service]
+Type=simple
+User=glenn
+ExecStartPre=/bin/sleep 60
+ExecStart=/usr/bin/python3 /home/glenn/FlightTracker/skiesfifty/push_logo.py
+Environment=PYTHONUNBUFFERED=1
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target

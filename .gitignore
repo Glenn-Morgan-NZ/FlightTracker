@@ -162,3 +162,6 @@ package-lock.json
 package.jsonde421.bsp
 AGENTS.md
 tests/.testdata/
+
+# SkiesFifty logo (kept out of git)
+skiesfifty/*.pgm

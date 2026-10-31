@@ -4,6 +4,12 @@ All notable changes to FlightTracker are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v2.12.4-s50.1] - 2026-10-30
+SkiesFifty fork, based on v2.12.4.
+- Pushed images (Image Upload API) redraw only the pixels that change,
+  so animations run smoothly on a Pi Zero
+- Added the SkiesFifty logo service in `skiesfifty/`
+
 ## [v2.12.4] - 2026-10-16
 - Added squawk codes to the custom scroller fields
 
